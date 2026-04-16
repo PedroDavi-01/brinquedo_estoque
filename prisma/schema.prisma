@@ -34,4 +34,7 @@ model Movimentacao {
 
   produto    Produto  @relation(fields: [produtoId], references: [id])
   produtoId  Int
+
+  usuario    Usuario  @relation(fields: [usuarioId], references: [id])
+  usuarioId  Int
 }
