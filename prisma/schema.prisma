@@ -7,23 +7,23 @@ datasource db {
   provider = "postgresql"
 }
 
-model Usuarios {
+model Usuario {
   id     Int @id @default(autoincrement()) 
   nome   String
   email  String @unique
   senha  String
-  movimentacao Movimentacoes[]
+  movimentacoes Movimentacao[]
 }
 
 model Produto {
   id            Int @id @default(autoincrement()) 
   nome          String 
   categoria     String
-  faixa_etaria  String
-  preco         Decimal(10,2)
-  qtd_atual     Int
-  qtd_minima    Int
-  movimentacao Movimentacoes[]
+  faixaEtaria   String
+  preco         Decimal  @db.Decimal(10, 2)
+  qtdAtual      Int
+  qtdMinima     Int
+  movimentacoes Movimentacao[]
 }
 
 model Movimentacao {
