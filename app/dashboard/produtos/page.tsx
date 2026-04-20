@@ -50,7 +50,6 @@ function ProdutosContent() {
   }, [busca]);
 
   useEffect(() => {
-    // Proteção para o build da Vercel (localStorage só existe no navegador)
     if (typeof window !== "undefined") {
       const cargoSalvo = localStorage.getItem("user_cargo");
       if (cargoSalvo) {
@@ -116,71 +115,73 @@ function ProdutosContent() {
                   </div>
                 </TableCell>
               </TableRow>
-            ) : listaProdutos.map((prod) => (
-              <TableRow key={prod.id} className="group hover:bg-slate-50/40 border-slate-50">
-                <TableCell className="pl-8 py-4">
-                  <div className="w-14 h-14 rounded-2xl bg-slate-100 overflow-hidden border border-slate-50 flex items-center justify-center">
-                    {prod.imagem ? (
-                      <img src={`data:image/png;base64,${prod.imagem}`} className="w-full h-full object-cover" alt={prod.nome} />
-                    ) : (
-                      <Package size={22} className="text-slate-300" />
-                    )}
-                  </div>
-                </TableCell>
-
-                <TableCell className="font-bold text-slate-900">{prod.nome}</TableCell>
-                
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    <span className="px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-[10px] font-black uppercase">
-                      {prod.categoria}
-                    </span>
-                    <span className="text-slate-400 font-bold text-[11px]">/ {prod.faixaEtaria}</span>
-                  </div>
-                </TableCell>
-
-                <TableCell className="font-black text-slate-900">R$ {prod.preco}</TableCell>
-
-                <TableCell>
-                  <div className="flex flex-col">
-                    <div className="flex items-center gap-1">
-                      <span className={`font-black ${Number(prod.qtdAtual) <= Number(prod.qtdMinima) ? 'text-red-500' : 'text-slate-900'}`}>
-                        {prod.qtdAtual} un.
-                      </span>
-                      {Number(prod.qtdAtual) <= Number(prod.qtdMinima) && <AlertCircle size={14} className="text-red-500 animate-pulse" />}
+            ) : (
+              listaProdutos.map((prod) => (
+                <TableRow key={prod.id} className="group hover:bg-slate-50/40 border-slate-50">
+                  <TableCell className="pl-8 py-4">
+                    <div className="w-14 h-14 rounded-2xl bg-slate-100 overflow-hidden border border-slate-50 flex items-center justify-center">
+                      {prod.imagem ? (
+                        <img src={`data:image/png;base64,${prod.imagem}`} className="w-full h-full object-cover" alt={prod.nome} />
+                      ) : (
+                        <Package size={22} className="text-slate-300" />
+                      )}
                     </div>
-                    <span className="text-[9px] font-bold text-slate-400 uppercase">Mín: {prod.qtdMinima}</span>
-                  </div>
-                </TableCell>
+                  </TableCell>
 
-                <TableCell className="text-right pr-8">
-                  <div className="flex items-center justify-end gap-2">
-                    {(cargo === "ADMIN" || cargo === "GERENTE") && (
-                      <ProdutoModal produto={prod} onSuccess={carregarDados} />
-                    )}
-                    
-                    {cargo === "ADMIN" && (
-                      <button
-                        onClick={async () => {
-                          if (confirm(`Excluir "${prod.nome}" permanentemente?`)) {
-                            const res = await deleteProduto(prod.id);
-                            if (res.success) carregarDados();
-                          }
-                        }}
-                        className="text-[12px] font-black text-red-500 uppercase hover:bg-red-100 px-4 py-2 rounded-xl transition-all active:scale-95 border border-transparent hover:border-red-200"
-                      >
-                        Excluir
-                      </button>
-                    )}
+                  <TableCell className="font-bold text-slate-900">{prod.nome}</TableCell>
+                  
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <span className="px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-[10px] font-black uppercase">
+                        {prod.categoria}
+                      </span>
+                      <span className="text-slate-400 font-bold text-[11px]">/ {prod.faixaEtaria}</span>
+                    </div>
+                  </TableCell>
 
-                    {cargo === "FUNCIONARIO" && (
-                      <span className="text-[9px] font-black uppercase text-slate-300 italic">Somente Leitura</span>
-                    )}
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </tbody>
+                  <TableCell className="font-black text-slate-900">R$ {prod.preco}</TableCell>
+
+                  <TableCell>
+                    <div className="flex flex-col">
+                      <div className="flex items-center gap-1">
+                        <span className={`font-black ${Number(prod.qtdAtual) <= Number(prod.qtdMinima) ? 'text-red-500' : 'text-slate-900'}`}>
+                          {prod.qtdAtual} un.
+                        </span>
+                        {Number(prod.qtdAtual) <= Number(prod.qtdMinima) && <AlertCircle size={14} className="text-red-500 animate-pulse" />}
+                      </div>
+                      <span className="text-[9px] font-bold text-slate-400 uppercase">Mín: {prod.qtdMinima}</span>
+                    </div>
+                  </TableCell>
+
+                  <TableCell className="text-right pr-8">
+                    <div className="flex items-center justify-end gap-2">
+                      {(cargo === "ADMIN" || cargo === "GERENTE") && (
+                        <ProdutoModal produto={prod} onSuccess={carregarDados} />
+                      )}
+                      
+                      {cargo === "ADMIN" && (
+                        <button
+                          onClick={async () => {
+                            if (confirm(`Excluir "${prod.nome}" permanentemente?`)) {
+                              const res = await deleteProduto(prod.id);
+                              if (res.success) carregarDados();
+                            }
+                          }}
+                          className="text-[12px] font-black text-red-500 uppercase hover:bg-red-100 px-4 py-2 rounded-xl transition-all active:scale-95 border border-transparent hover:border-red-200"
+                        >
+                          Excluir
+                        </button>
+                      )}
+
+                      {cargo === "FUNCIONARIO" && (
+                        <span className="text-[9px] font-black uppercase text-slate-300 italic">Somente Leitura</span>
+                      )}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
         </Table>
       </div>
     </div>
