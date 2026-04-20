@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, Suspense } from "react";
 import { getProdutos, deleteProduto } from "@/lib/actions/produtos";
 import { ProdutoModal } from "../../../components/novo-produto";
+import { toast } from "sonner"; // ADICIONADO: Import do toast
 
 import { 
   Table, 
@@ -44,6 +45,7 @@ function ProdutosContent() {
       setListaProdutos(dados || []);
     } catch (error) {
       console.error("Erro ao carregar produtos:", error);
+      toast.error("Erro ao sincronizar produtos com o servidor."); // ADICIONADO
     } finally {
       setCarregando(false);
     }
@@ -72,7 +74,10 @@ function ProdutosContent() {
         </div>
         
         {cargo !== "FUNCIONARIO" && (
-          <ProdutoModal onSuccess={carregarDados} />
+          <ProdutoModal onSuccess={() => {
+            carregarDados();
+            toast.success("Operação realizada com sucesso!"); // ADICIONADO
+          }} />
         )}
       </div>
 
@@ -156,7 +161,10 @@ function ProdutosContent() {
                   <TableCell className="text-right pr-8">
                     <div className="flex items-center justify-end gap-2">
                       {(cargo === "ADMIN" || cargo === "GERENTE") && (
-                        <ProdutoModal produto={prod} onSuccess={carregarDados} />
+                        <ProdutoModal produto={prod} onSuccess={() => {
+                          carregarDados();
+                          toast.success("Produto editado!"); // ADICIONADO
+                        }} />
                       )}
                       
                       {cargo === "ADMIN" && (
@@ -164,7 +172,12 @@ function ProdutosContent() {
                           onClick={async () => {
                             if (confirm(`Excluir "${prod.nome}" permanentemente?`)) {
                               const res = await deleteProduto(prod.id);
-                              if (res.success) carregarDados();
+                              if (res.success) {
+                                toast.success("Produto removido com sucesso."); // ADICIONADO
+                                carregarDados();
+                              } else {
+                                toast.error("Não foi possível excluir o produto."); // ADICIONADO
+                              }
                             }
                           }}
                           className="text-[12px] font-black text-red-500 uppercase hover:bg-red-100 px-4 py-2 rounded-xl transition-all active:scale-95 border border-transparent hover:border-red-200"

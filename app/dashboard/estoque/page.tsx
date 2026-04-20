@@ -11,6 +11,7 @@ import {
   ArrowRight, 
   Loader2 
 } from "lucide-react";
+import { toast } from "sonner"; // ADICIONADO: Import do toast
 import { getDadosEstoque } from "@/lib/actions/estoque";
 import Link from "next/link";
 
@@ -51,8 +52,12 @@ function EstoqueContent() {
       try {
         const res = await getDadosEstoque();
         setDados(res);
+        // ADICIONADO: Feedback de sucesso ao carregar inteligência de estoque
+        toast.success("Dados de inventário sincronizados.");
       } catch (error) {
         console.error("Erro ao carregar dados do estoque:", error);
+        // ADICIONADO: Feedback de erro
+        toast.error("Falha ao carregar inteligência de estoque.");
       } finally {
         setLoading(false);
       }

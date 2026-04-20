@@ -5,6 +5,7 @@ import { Users, UserPlus, Trash2, ShieldCheck, X, Loader2 } from "lucide-react";
 import { getUsuarios, deleteUsuario, createUsuario } from "@/lib/actions/usuarios";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner"; // ADICIONADO: Import do toast
 
 export default function UsuariosPage() {
   return (
@@ -40,6 +41,7 @@ function UsuariosContent() {
       setUsuarios(dados || []);
     } catch (error) {
       console.error("Erro ao carregar usuários:", error);
+      toast.error("Não foi possível carregar a lista de usuários.");
     } finally {
       setLoading(false);
     }
@@ -57,12 +59,13 @@ function UsuariosContent() {
       if (res.success) {
         setIsModalOpen(false);
         setFormData({ nome: "", email: "", senha: "", cargo: "FUNCIONARIO" });
+        toast.success("Novo usuário cadastrado com sucesso!"); // ADICIONADO
         carregarUsuarios();
       } else {
-        alert("Erro ao criar usuário.");
+        toast.error(res.message || "Erro ao criar usuário."); // ADICIONADO
       }
     } catch (err) {
-      alert("Falha na conexão com o servidor.");
+      toast.error("Falha na conexão com o servidor."); // ADICIONADO
     } finally {
       setIsSaving(false);
     }
@@ -73,12 +76,13 @@ function UsuariosContent() {
       try {
         const res = await deleteUsuario(id);
         if (res.success) {
+          toast.success("Usuário removido do sistema."); // ADICIONADO
           carregarUsuarios();
         } else {
-          alert("Erro ao excluir usuário.");
+          toast.error("Erro ao excluir usuário."); // ADICIONADO
         }
       } catch (err) {
-        alert("Erro ao processar exclusão.");
+        toast.error("Erro ao processar exclusão."); // ADICIONADO
       }
     }
   };

@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { History, Calendar, User, Package, ArrowUpRight, ArrowDownRight, Loader2 } from "lucide-react";
 import { ModalMovimentacao } from "@/components/modal-movimentacao";
 import { getMovimentacoesData } from "@/lib/actions/movimentacoes"; 
+import { toast } from "sonner";
 
 // O Next.js exige que componentes que usam useSearchParams estejam envoltos em Suspense
 export default function MovimentacoesPage() {
@@ -36,6 +37,7 @@ function MovimentacoesContent() {
         setData(res);
       } catch (error) {
         console.error("Erro ao buscar movimentações:", error);
+        toast.error("Erro ao carregar histórico de fluxo."); // ADICIONADO: Feedback de erro
       } finally {
         setLoading(false);
       }
@@ -58,7 +60,7 @@ function MovimentacoesContent() {
     <div className="p-8 space-y-8 bg-[#F8FAFC] min-h-screen">
       
       {/* HEADER */}
-      <div className="flex flex-row justify-between items-end">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div className="flex flex-col">
           <div className="flex items-center gap-2 text-blue-600 mb-1">
             <History size={18} />
@@ -72,80 +74,86 @@ function MovimentacoesContent() {
           </p>
         </div>
 
-        {/* MODAL */}
+        {/* MODAL - Repassa um toast de sucesso ao fechar o modal após salvar */}
         <ModalMovimentacao 
           produtos={data.listaProdutos} 
           defaultOpen={deveAbrirModal}
           defaultProdutoId={produtoIdPreSelecionado}
+          onSuccess={() => {
+             // Você pode chamar fetchData() aqui se quiser atualizar a lista após o modal fechar
+             toast.success("Movimentação registrada!");
+          }}
         />
       </div>
 
       {/* TABELA */}
       <div className="bg-white rounded-[40px] border border-slate-100 shadow-sm overflow-hidden">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="bg-slate-50/50 border-b border-slate-100">
-              <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Produto</th>
-              <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Tipo</th>
-              <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Quantidade</th>
-              <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Responsável</th>
-              <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Data</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-50">
-            {data.todasMovimentacoes.length > 0 ? (
-              data.todasMovimentacoes.map((mov) => (
-                <tr key={mov.id} className="hover:bg-slate-50/50 transition-colors group">
-                  <td className="px-8 py-5">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-slate-100 rounded-xl text-slate-500 group-hover:bg-blue-100 group-hover:text-blue-600 transition-colors">
-                        <Package size={16} />
-                      </div>
-                      <span className="text-sm font-black text-slate-900 uppercase italic leading-none">
-                        {mov.produtoNome}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-8 py-5">
-                    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tight leading-none ${
-                      mov.tipo === 'ENTRADA' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                    }`}>
-                      {mov.tipo === 'ENTRADA' ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
-                      {mov.tipo}
-                    </span>
-                  </td>
-                  <td className="px-8 py-5">
-                    <span className={`text-sm font-black italic leading-none ${mov.tipo === 'ENTRADA' ? 'text-green-600' : 'text-red-600'}`}>
-                      {mov.tipo === 'ENTRADA' ? '+' : '-'}{mov.quantidade}
-                    </span>
-                  </td>
-                  <td className="px-8 py-5">
-                    <div className="flex items-center gap-2 text-slate-600">
-                      <User size={14} className="text-slate-400" />
-                      <span className="text-xs font-bold uppercase tracking-tighter leading-none">
-                        {mov.usuarioNome}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-8 py-5 text-right">
-                    <div className="inline-flex items-center gap-2 text-slate-400">
-                      <Calendar size={14} />
-                      <span className="text-xs font-bold leading-none">
-                        {mov.data ? new Date(mov.data).toLocaleDateString('pt-BR') : '--/--/----'}
-                      </span>
-                    </div>
-                  </td>
+        <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+            <thead>
+                <tr className="bg-slate-50/50 border-b border-slate-100">
+                <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Produto</th>
+                <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Tipo</th>
+                <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Quantidade</th>
+                <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Responsável</th>
+                <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Data</th>
                 </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan={5} className="p-20 text-center">
-                   <p className="text-sm text-slate-400 font-bold uppercase italic tracking-widest">Nenhuma movimentação.</p>
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-slate-50">
+                {data.todasMovimentacoes.length > 0 ? (
+                data.todasMovimentacoes.map((mov) => (
+                    <tr key={mov.id} className="hover:bg-slate-50/50 transition-colors group">
+                    <td className="px-8 py-5">
+                        <div className="flex items-center gap-3">
+                        <div className="p-2 bg-slate-100 rounded-xl text-slate-500 group-hover:bg-blue-100 group-hover:text-blue-600 transition-colors">
+                            <Package size={16} />
+                        </div>
+                        <span className="text-sm font-black text-slate-900 uppercase italic leading-none">
+                            {mov.produtoNome}
+                        </span>
+                        </div>
+                    </td>
+                    <td className="px-8 py-5">
+                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tight leading-none ${
+                        mov.tipo === 'ENTRADA' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                        }`}>
+                        {mov.tipo === 'ENTRADA' ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
+                        {mov.tipo}
+                        </span>
+                    </td>
+                    <td className="px-8 py-5">
+                        <span className={`text-sm font-black italic leading-none ${mov.tipo === 'ENTRADA' ? 'text-green-600' : 'text-red-600'}`}>
+                        {mov.tipo === 'ENTRADA' ? '+' : '-'}{mov.quantidade}
+                        </span>
+                    </td>
+                    <td className="px-8 py-5">
+                        <div className="flex items-center gap-2 text-slate-600">
+                        <User size={14} className="text-slate-400" />
+                        <span className="text-xs font-bold uppercase tracking-tighter leading-none">
+                            {mov.usuarioNome}
+                        </span>
+                        </div>
+                    </td>
+                    <td className="px-8 py-5 text-right">
+                        <div className="inline-flex items-center gap-2 text-slate-400">
+                        <Calendar size={14} />
+                        <span className="text-xs font-bold leading-none">
+                            {mov.data ? new Date(mov.data).toLocaleDateString('pt-BR') : '--/--/----'}
+                        </span>
+                        </div>
+                    </td>
+                    </tr>
+                ))
+                ) : (
+                <tr>
+                    <td colSpan={5} className="p-20 text-center">
+                    <p className="text-sm text-slate-400 font-bold uppercase italic tracking-widest">Nenhuma movimentação.</p>
+                    </td>
+                </tr>
+                )}
+            </tbody>
+            </table>
+        </div>
       </div>
     </div>
   );

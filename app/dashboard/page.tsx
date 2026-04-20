@@ -1,6 +1,5 @@
 "use client";
 
-
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { 
@@ -11,6 +10,7 @@ import {
   AlertTriangle,
   ClipboardList
 } from "lucide-react";
+import { toast } from "sonner"; // ADICIONADO: Import do toast
 import { BtnRelatorio } from "@/components/btn-relatorio";
 
 import { getDashboardData } from "@/lib/actions/dashboard"; 
@@ -21,13 +21,19 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Pega o cargo e carrega os dados
     setCargo(localStorage.getItem("user_cargo"));
     
     async function fetchData() {
-      const res = await getDashboardData();
-      setData(res);
-      setLoading(false);
+      try {
+        const res = await getDashboardData();
+        setData(res);
+        // ADICIONADO: Feedback visual ao terminar de carregar
+        toast.success("Dados atualizados com sucesso!");
+      } catch (error) {
+        toast.error("Erro ao carregar os dados do painel.");
+      } finally {
+        setLoading(false);
+      }
     }
     fetchData();
   }, []);
@@ -104,7 +110,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* SIDEBAR DE AÇÕES (AQUI ESTÁ O FILTRO DE CARGO) */}
+        {/* SIDEBAR DE AÇÕES */}
         <div className="space-y-6">
           <div className="bg-slate-900 rounded-[40px] p-8 text-white shadow-2xl shadow-blue-900/20">
             <h3 className="text-xl font-black uppercase italic tracking-tighter leading-none mb-2">Ações Rápidas</h3>
@@ -113,14 +119,12 @@ export default function DashboardPage() {
             </p>
             
             <div className="space-y-3">
-              {/* TODOS podem dar entrada */}
               <Link href="/dashboard/movimentacoes?novo=true&tipo=ENTRADA" className="block">
                 <button className="w-full bg-blue-600 hover:bg-blue-700 py-4 rounded-[22px] font-black uppercase text-xs transition-all active:scale-95 shadow-lg shadow-blue-600/20 leading-none">
                   Nova Entrada
                 </button>
               </Link>
 
-              {/* SÓ QUEM NÃO É FUNCIONÁRIO vê Saída e PDF */}
               {cargo !== "FUNCIONARIO" && (
                 <>
                   <Link href="/dashboard/movimentacoes?novo=true&tipo=SAIDA" className="block">
@@ -129,12 +133,10 @@ export default function DashboardPage() {
                     </button>
                   </Link>
                   
-                  {/* Botão de Relatório PDF */}
                   <BtnRelatorio dados={data.listaProdutos} />
                 </>
               )}
 
-              {/* Link extra para Admin gerenciar estoque completo */}
               {cargo === "ADMIN" && (
                 <Link href="/dashboard/estoque" className="block pt-4 border-t border-white/10">
                   <button className="w-full text-slate-400 hover:text-white py-2 font-black uppercase text-[10px] transition-all">
@@ -145,7 +147,6 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* CARD DE INFORMAÇÃO DO USUÁRIO */}
           <div className="bg-blue-600 rounded-[40px] p-8 text-white">
             <p className="text-[10px] font-black uppercase opacity-60 mb-1">Usuário Ativo</p>
             <h4 className="font-black uppercase italic leading-none">{localStorage.getItem("user_nome") || "Usuário"}</h4>

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Package, AlertCircle, Loader2 } from "lucide-react";
+import { toast } from "sonner"; // ADICIONADO: Import do toast
 
 import { loginAction } from "@/lib/actions/auth";
 
@@ -29,24 +30,25 @@ export default function LoginPage() {
     setCarregando(true);
 
     try {
-      // CHAMANDO A SERVER ACTION DIRETAMENTE
       const res = await loginAction({ email, senha });
 
       if (res.success && res.user) {
-        // MANTEMOS O LOCALSTORAGE PARA A UI (CARGO, NOME)
         localStorage.setItem("user_cargo", res.user.cargo);
         localStorage.setItem("user_nome", res.user.nome);
         localStorage.setItem("user_id", String(res.user.id)); 
         
-        // Redireciona para o dashboard
+        toast.success(`Bem-vindo, ${res.user.nome}!`);
+
         router.push("/dashboard");
-        router.refresh(); // Garante que o Middleware perceba o novo cookie
+        router.refresh();
       } else {
-        // Exibe a mensagem de erro vinda da Action (Usuário não encontrado, senha incorreta, etc)
-        setErro(res.message || "Erro ao realizar login.");
+        const mensagemErro = res.message || "Erro ao realizar login.";
+        setErro(mensagemErro);
+        toast.error(mensagemErro);
       }
     } catch (err) {
       setErro("Erro crítico de conexão.");
+      toast.error("Não foi possível conectar ao servidor.");
     } finally {
       setCarregando(false);
     }
