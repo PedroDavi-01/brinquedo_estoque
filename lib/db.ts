@@ -1,7 +1,11 @@
-// lib/db.ts
-import { drizzle } from 'drizzle-orm/neon-http'; // ou a lib que você usa
-import { neon } from '@neondatabase/serverless';
+import { neonConfig, Pool } from '@neondatabase/serverless';
+import { drizzle } from 'drizzle-orm/neon-serverless';
+import ws from 'ws';
 
-// Pega a URL do ambiente, não deixa ela escrita aqui!
-const sql = neon(process.env.DATABASE_URL!); 
-export const db = drizzle(sql);
+if (typeof window === 'undefined') {
+  neonConfig.webSocketConstructor = ws;
+}
+
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+
+export const db = drizzle(pool);
