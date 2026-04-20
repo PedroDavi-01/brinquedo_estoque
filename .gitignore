@@ -45,4 +45,3 @@ docker-compose.yml
 
 drizzle.config.ts
 
-lib/db.ts
