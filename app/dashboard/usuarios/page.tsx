@@ -1,12 +1,25 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { Users, UserPlus, Trash2, Edit, ShieldCheck, X, Loader2 } from "lucide-react";
+import { useEffect, useState, Suspense } from "react";
+import { Users, UserPlus, Trash2, ShieldCheck, X, Loader2 } from "lucide-react";
 import { getUsuarios, deleteUsuario, createUsuario } from "@/lib/actions/usuarios";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
 export default function UsuariosPage() {
+  return (
+    <Suspense fallback={
+      <div className="p-8 font-black uppercase italic text-slate-400 flex items-center gap-2">
+        <Loader2 className="animate-spin" size={18} />
+        Sincronizando Usuários...
+      </div>
+    }>
+      <UsuariosContent />
+    </Suspense>
+  );
+}
+
+function UsuariosContent() {
   const [usuarios, setUsuarios] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -22,9 +35,14 @@ export default function UsuariosPage() {
 
   async function carregarUsuarios() {
     setLoading(true);
-    const dados = await getUsuarios();
-    setUsuarios(dados);
-    setLoading(false);
+    try {
+      const dados = await getUsuarios();
+      setUsuarios(dados || []);
+    } catch (error) {
+      console.error("Erro ao carregar usuários:", error);
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => {
@@ -34,36 +52,51 @@ export default function UsuariosPage() {
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
-    const res = await createUsuario(formData);
-    
-    if (res.success) {
-      setIsModalOpen(false);
-      setFormData({ nome: "", email: "", senha: "", cargo: "FUNCIONARIO" });
-      carregarUsuarios();
-    } else {
-      alert("Erro ao criar usuário.");
+    try {
+      const res = await createUsuario(formData);
+      if (res.success) {
+        setIsModalOpen(false);
+        setFormData({ nome: "", email: "", senha: "", cargo: "FUNCIONARIO" });
+        carregarUsuarios();
+      } else {
+        alert("Erro ao criar usuário.");
+      }
+    } catch (err) {
+      alert("Falha na conexão com o servidor.");
+    } finally {
+      setIsSaving(false);
     }
-    setIsSaving(false);
   };
 
   const handleDelete = async (id: number) => {
     if (confirm("Deseja realmente excluir este usuário? Isso é irreversível.")) {
-      const res = await deleteUsuario(id);
-      if (res.success) {
-        carregarUsuarios();
-      } else {
-        alert("Erro ao excluir usuário.");
+      try {
+        const res = await deleteUsuario(id);
+        if (res.success) {
+          carregarUsuarios();
+        } else {
+          alert("Erro ao excluir usuário.");
+        }
+      } catch (err) {
+        alert("Erro ao processar exclusão.");
       }
     }
   };
 
-  if (loading) return <div className="p-8 font-black uppercase italic text-slate-400">Carregando Usuários...</div>;
+  if (loading && usuarios.length === 0) {
+    return (
+      <div className="p-8 font-black uppercase italic text-slate-400 flex items-center gap-2">
+        <Loader2 className="animate-spin" size={18} />
+        Carregando Usuários...
+      </div>
+    );
+  }
 
   return (
     <div className="p-8 space-y-8 bg-[#F8FAFC] min-h-screen">
       
       {/* HEADER */}
-      <div className="flex justify-between items-end">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div className="flex flex-col">
           <div className="flex items-center gap-2 text-blue-600 mb-1">
             <Users size={18} />
@@ -84,38 +117,48 @@ export default function UsuariosPage() {
 
       {/* TABELA */}
       <div className="bg-white rounded-[40px] border border-slate-100 shadow-sm overflow-hidden">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="bg-slate-50/50">
-              <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Nome / E-mail</th>
-              <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Cargo</th>
-              <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Ações</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-50">
-            {usuarios.map((user) => (
-              <tr key={user.id} className="hover:bg-slate-50 transition-colors">
-                <td className="px-8 py-6">
-                  <p className="text-sm font-black uppercase italic text-slate-900">{user.nome}</p>
-                  <p className="text-[10px] font-bold text-slate-400">{user.email}</p>
-                </td>
-                <td className="px-8 py-6">
-                  <span className={`text-[10px] font-black px-3 py-1.5 rounded-full uppercase flex items-center gap-1 w-fit ${
-                    user.cargo === 'ADMIN' ? 'bg-purple-100 text-purple-700' : 
-                    user.cargo === 'GERENTE' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-700'
-                  }`}>
-                    <ShieldCheck size={12} /> {user.cargo}
-                  </span>
-                </td>
-                <td className="px-8 py-6 text-right space-x-2">
-                  <button onClick={() => handleDelete(user.id)} className="p-2 text-slate-300 hover:text-red-600 transition-colors">
-                    <Trash2 size={18} />
-                  </button>
-                </td>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-slate-50/50">
+                <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Nome / E-mail</th>
+                <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Cargo</th>
+                <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Ações</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-slate-50">
+              {usuarios.length > 0 ? (
+                usuarios.map((user) => (
+                  <tr key={user.id} className="hover:bg-slate-50 transition-colors">
+                    <td className="px-8 py-6">
+                      <p className="text-sm font-black uppercase italic text-slate-900">{user.nome}</p>
+                      <p className="text-[10px] font-bold text-slate-400">{user.email}</p>
+                    </td>
+                    <td className="px-8 py-6">
+                      <span className={`text-[10px] font-black px-3 py-1.5 rounded-full uppercase flex items-center gap-1 w-fit ${
+                        user.cargo === 'ADMIN' ? 'bg-purple-100 text-purple-700' : 
+                        user.cargo === 'GERENTE' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-700'
+                      }`}>
+                        <ShieldCheck size={12} /> {user.cargo}
+                      </span>
+                    </td>
+                    <td className="px-8 py-6 text-right">
+                      <button onClick={() => handleDelete(user.id)} className="p-2 text-slate-300 hover:text-red-600 transition-colors">
+                        <Trash2 size={18} />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={3} className="px-8 py-10 text-center text-slate-400 font-bold uppercase italic text-sm">
+                    Nenhum usuário cadastrado.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* MODAL DE CRIAÇÃO */}
@@ -160,7 +203,7 @@ export default function UsuariosPage() {
               <div className="space-y-1">
                 <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Cargo / Nível</label>
                 <select 
-                  className="w-full h-10 px-3 rounded-2xl border border-slate-100 text-sm font-bold uppercase"
+                  className="w-full h-10 px-3 rounded-2xl border border-slate-100 text-sm font-bold uppercase outline-none focus:ring-2 focus:ring-blue-100"
                   value={formData.cargo}
                   onChange={e => setFormData({...formData, cargo: e.target.value})}
                 >

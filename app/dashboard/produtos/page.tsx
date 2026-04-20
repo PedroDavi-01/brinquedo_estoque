@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, Suspense } from "react";
 import { getProdutos, deleteProduto } from "@/lib/actions/produtos";
 import { ProdutoModal } from "../../../components/novo-produto";
 
@@ -17,25 +17,45 @@ import { Search, Filter, Package, AlertCircle, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
 export default function ProdutosPage() {
+  return (
+    <Suspense fallback={
+      <div className="h-screen flex items-center justify-center bg-[#F8FAFC]">
+        <div className="flex flex-col items-center gap-2 text-slate-400 font-bold italic">
+          <Loader2 className="animate-spin" size={32} />
+          <span>Sincronizando Estoque...</span>
+        </div>
+      </div>
+    }>
+      <ProdutosContent />
+    </Suspense>
+  );
+}
+
+function ProdutosContent() {
   const [listaProdutos, setListaProdutos] = useState<any[]>([]);
   const [busca, setBusca] = useState("");
   const [carregando, setCarregando] = useState(true);
-  
-  // Estado para o cargo do usuário
   const [cargo, setCargo] = useState<string | null>(null);
 
   const carregarDados = useCallback(async () => {
     setCarregando(true);
-    const dados = await getProdutos(busca);
-    setListaProdutos(dados || []);
-    setCarregando(false);
+    try {
+      const dados = await getProdutos(busca);
+      setListaProdutos(dados || []);
+    } catch (error) {
+      console.error("Erro ao carregar produtos:", error);
+    } finally {
+      setCarregando(false);
+    }
   }, [busca]);
 
   useEffect(() => {
-    // Busca o cargo e normaliza para MAIÚSCULO
-    const cargoSalvo = localStorage.getItem("user_cargo");
-    if (cargoSalvo) {
-      setCargo(cargoSalvo.toUpperCase());
+    // Proteção para o build da Vercel (localStorage só existe no navegador)
+    if (typeof window !== "undefined") {
+      const cargoSalvo = localStorage.getItem("user_cargo");
+      if (cargoSalvo) {
+        setCargo(cargoSalvo.toUpperCase());
+      }
     }
     
     const timeoutId = setTimeout(carregarDados, 300);
@@ -52,7 +72,6 @@ export default function ProdutosPage() {
           <p className="text-slate-500 text-sm font-medium">Gestão de brinquedos e produtos.</p>
         </div>
         
-        {/* SÓ MOSTRA O BOTÃO "NOVO" SE NÃO FOR FUNCIONÁRIO */}
         {cargo !== "FUNCIONARIO" && (
           <ProdutoModal onSuccess={carregarDados} />
         )}
@@ -125,7 +144,6 @@ export default function ProdutosPage() {
                 <TableCell>
                   <div className="flex flex-col">
                     <div className="flex items-center gap-1">
-                      {/* LÓGICA DE CORRIGIDA: qtdAtual <= qtdMinima */}
                       <span className={`font-black ${Number(prod.qtdAtual) <= Number(prod.qtdMinima) ? 'text-red-500' : 'text-slate-900'}`}>
                         {prod.qtdAtual} un.
                       </span>
@@ -137,13 +155,10 @@ export default function ProdutosPage() {
 
                 <TableCell className="text-right pr-8">
                   <div className="flex items-center justify-end gap-2">
-                    
-                    {/* EDITAR: ADMIN OU GERENTE PODE */}
                     {(cargo === "ADMIN" || cargo === "GERENTE") && (
                       <ProdutoModal produto={prod} onSuccess={carregarDados} />
                     )}
                     
-                    {/* EXCLUIR: SÓ QUEM É EXATAMENTE ADMIN */}
                     {cargo === "ADMIN" && (
                       <button
                         onClick={async () => {
@@ -158,7 +173,6 @@ export default function ProdutosPage() {
                       </button>
                     )}
 
-                    {/* SE FOR FUNCIONÁRIO, BLOQUEIA VISUALMENTE */}
                     {cargo === "FUNCIONARIO" && (
                       <span className="text-[9px] font-black uppercase text-slate-300 italic">Somente Leitura</span>
                     )}
@@ -166,7 +180,7 @@ export default function ProdutosPage() {
                 </TableCell>
               </TableRow>
             ))}
-          </TableBody>
+          </tbody>
         </Table>
       </div>
     </div>

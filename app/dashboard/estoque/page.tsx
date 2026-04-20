@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import dynamic from "next/dynamic";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
@@ -25,6 +25,19 @@ const YAxis = dynamic(() => import("recharts").then(m => m.YAxis), { ssr: false 
 const Tooltip = dynamic(() => import("recharts").then(m => m.Tooltip), { ssr: false });
 
 export default function EstoquePage() {
+  return (
+    <Suspense fallback={
+      <div className="h-screen flex flex-col items-center justify-center bg-[#F8FAFC]">
+        <Loader2 className="animate-spin text-blue-600 mb-4" size={40} />
+        <p className="font-black italic uppercase text-slate-400 tracking-tighter">Preparando Dashboard...</p>
+      </div>
+    }>
+      <EstoqueContent />
+    </Suspense>
+  );
+}
+
+function EstoqueContent() {
   const [mounted, setMounted] = useState(false);
   const [dados, setDados] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -47,7 +60,7 @@ export default function EstoquePage() {
     carregarDados();
   }, []);
 
-  if (!mounted || loading) {
+  if (!mounted || loading || !dados) {
     return (
       <div className="h-screen flex flex-col items-center justify-center bg-[#F8FAFC]">
         <Loader2 className="animate-spin text-blue-600 mb-4" size={40} />
@@ -150,7 +163,6 @@ export default function EstoquePage() {
                 </div>
               </div>
 
-              {/* CONTROLE DE ACESSO NO BOTÃO DE REPOSIÇÃO */}
               {cargo !== "FUNCIONARIO" && (
                 <Link href={`/dashboard/movimentacoes?novo=true&produtoId=${prod.id}`}>
                   <button className="bg-slate-900 text-white p-3 rounded-xl hover:bg-slate-800 transition-all active:scale-95">

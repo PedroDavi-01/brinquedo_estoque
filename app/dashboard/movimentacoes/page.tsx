@@ -1,12 +1,26 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { History, Calendar, User, Package, ArrowUpRight, ArrowDownRight, Loader2 } from "lucide-react";
 import { ModalMovimentacao } from "@/components/modal-movimentacao";
 import { getMovimentacoesData } from "@/lib/actions/movimentacoes"; 
 
+// O Next.js exige que componentes que usam useSearchParams estejam envoltos em Suspense
 export default function MovimentacoesPage() {
+  return (
+    <Suspense fallback={
+      <div className="h-screen flex flex-col items-center justify-center bg-[#F8FAFC]">
+        <Loader2 className="animate-spin text-blue-600 mb-4" size={40} />
+        <p className="font-black italic uppercase text-slate-400 tracking-tighter">Preparando Ambiente...</p>
+      </div>
+    }>
+      <MovimentacoesContent />
+    </Suspense>
+  );
+}
+
+function MovimentacoesContent() {
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<{ listaProdutos: any[], todasMovimentacoes: any[] }>({
@@ -17,9 +31,14 @@ export default function MovimentacoesPage() {
   // Busca os dados do banco via Action
   useEffect(() => {
     async function fetchData() {
-      const res = await getMovimentacoesData();
-      setData(res);
-      setLoading(false);
+      try {
+        const res = await getMovimentacoesData();
+        setData(res);
+      } catch (error) {
+        console.error("Erro ao buscar movimentações:", error);
+      } finally {
+        setLoading(false);
+      }
     }
     fetchData();
   }, []);
@@ -53,7 +72,7 @@ export default function MovimentacoesPage() {
           </p>
         </div>
 
-        {/* MODAL: Passamos o ID vindo da URL como default */}
+        {/* MODAL */}
         <ModalMovimentacao 
           produtos={data.listaProdutos} 
           defaultOpen={deveAbrirModal}
@@ -61,7 +80,7 @@ export default function MovimentacoesPage() {
         />
       </div>
 
-      {/* TABELA "PUDIM" */}
+      {/* TABELA */}
       <div className="bg-white rounded-[40px] border border-slate-100 shadow-sm overflow-hidden">
         <table className="w-full text-left border-collapse">
           <thead>
@@ -112,7 +131,7 @@ export default function MovimentacoesPage() {
                     <div className="inline-flex items-center gap-2 text-slate-400">
                       <Calendar size={14} />
                       <span className="text-xs font-bold leading-none">
-                        {new Date(mov.data).toLocaleDateString('pt-BR')}
+                        {mov.data ? new Date(mov.data).toLocaleDateString('pt-BR') : '--/--/----'}
                       </span>
                     </div>
                   </td>
