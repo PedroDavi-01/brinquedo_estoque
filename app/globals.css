@@ -128,3 +128,42 @@
     @apply font-sans;
   }
 }
+
+@layer base {
+  @media (max-width: 1366px) {
+    :root {
+      /* Reduz a escala global de fontes para o sistema inteiro */
+      font-size: 14px;
+    }
+
+    /* Reduz o impacto visual de paddings e gaps grandes em telas 768p */
+    .p-8 {
+      padding: 1.25rem !important; /* vira p-5 */
+    }
+    
+    .p-6 {
+      padding: 1rem !important; /* vira p-4 */
+    }
+
+    .space-y-8 {
+      margin-top: 1.5rem !important;
+      margin-bottom: 1.5rem !important;
+    }
+
+    /* Ajusta os títulos que estão "gritando" na tela pequena */
+    h1.text-4xl, .text-4xl {
+      font-size: 1.875rem !important; /* vira text-3xl */
+      line-height: 2.25rem !important;
+    }
+
+    /* Se os seus inputs h-14 estiverem ocupando muita altura */
+    .h-14 {
+      height: 2.75rem !important; /* vira h-11 */
+    }
+
+    /* Diminui o arredondamento exagerado que come espaço útil */
+    .rounded-\[40px\], .rounded-\[32px\] {
+      border-radius: 1.5rem !important; /* vira rounded-3xl */
+    }
+  }
+}

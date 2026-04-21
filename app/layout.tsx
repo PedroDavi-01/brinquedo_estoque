@@ -23,14 +23,10 @@ export const metadata: Metadata = {
   manifest: "/site.webmanifest",
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="pt-br" suppressHydrationWarning>
-      <body className={poppins.className} suppressHydrationWarning>
+    <html lang="pt-br">
+      <body className={`${poppins.className} text-[14px] 2xl:text-[16px] bg-[#F8FAFC]`}>
         {children}
         <Toaster richColors position="top-center" /> 
       </body>
