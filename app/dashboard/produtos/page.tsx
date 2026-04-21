@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, Suspense } from "react";
 import { getProdutos, deleteProduto } from "@/lib/actions/produtos";
 import { ProdutoModal } from "../../../components/novo-produto";
 import { toast } from "sonner";
+import Image from "next/image";
 
 import { 
   Table, 
@@ -123,18 +124,24 @@ function ProdutosContent() {
             ) : (
               listaProdutos.map((prod) => (
                 <TableRow key={prod.id} className="group hover:bg-slate-50/40 border-slate-50">
-                  <TableCell className="pl-8 py-4">
-                    <div className="w-14 h-14 rounded-2xl bg-slate-100 overflow-hidden border border-slate-50 flex items-center justify-center">
-                      {prod.imagem ? (
-                        /* AJUSTE DE COMPRESSÃO: Alterado de image/png para image/webp 
-                           para suportar o novo formato comprimido e economizar banda.
-                        */
-                        <img src={`data:image/webp;base64,${prod.imagem}`} className="w-full h-full object-cover" alt={prod.nome} />
-                      ) : (
-                        <Package size={22} className="text-slate-300" />
-                      )}
-                    </div>
-                  </TableCell>
+<TableCell className="pl-8 py-4">
+  <div className="relative w-14 h-14 rounded-2xl bg-slate-100 overflow-hidden border border-slate-50 shrink-0">
+    {prod.imagem ? (
+      <Image 
+        src={`data:image/webp;base64,${prod.imagem}`} 
+        alt={prod.nome}
+        fill 
+        className="object-cover" 
+        sizes="56px" 
+        unoptimized 
+      />
+    ) : (
+      <div className="w-full h-full flex items-center justify-center">
+        <Package size={22} className="text-slate-300" />
+      </div>
+    )}
+  </div>
+</TableCell>
 
                   <TableCell className="font-bold text-slate-900">{prod.nome}</TableCell>
                   

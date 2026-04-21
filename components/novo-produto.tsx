@@ -15,6 +15,7 @@ import { createProduto, updateProduto } from "@/lib/actions/produtos";
 import imageCompression from "browser-image-compression";
 import { toast } from "sonner";
 
+
 interface ProdutoModalProps {
   produto?: any;
   onSuccess?: () => void;
@@ -42,11 +43,11 @@ export function ProdutoModal({ produto, onSuccess }: ProdutoModalProps) {
     const toastId = toast.loading("Otimizando imagem...");
 
     const options = {
-      maxSizeMB: 5,
-      maxWidthOrHeight: 1920,
+      maxSizeMB: 1,
+      maxWidthOrHeight: 1024,
       useWebWorker: true,
       fileType: 'image/webp',
-      initialQuality: 0.95
+      initialQuality: 1
     };
 
     try {
