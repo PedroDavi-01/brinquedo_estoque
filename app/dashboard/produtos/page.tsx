@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, Suspense } from "react";
 import { getProdutos, deleteProduto } from "@/lib/actions/produtos";
 import { ProdutoModal } from "../../../components/novo-produto";
-import { toast } from "sonner"; // ADICIONADO: Import do toast
+import { toast } from "sonner";
 
 import { 
   Table, 
@@ -45,7 +45,7 @@ function ProdutosContent() {
       setListaProdutos(dados || []);
     } catch (error) {
       console.error("Erro ao carregar produtos:", error);
-      toast.error("Erro ao sincronizar produtos com o servidor."); // ADICIONADO
+      toast.error("Erro ao sincronizar produtos com o servidor.");
     } finally {
       setCarregando(false);
     }
@@ -76,7 +76,7 @@ function ProdutosContent() {
         {cargo !== "FUNCIONARIO" && (
           <ProdutoModal onSuccess={() => {
             carregarDados();
-            toast.success("Operação realizada com sucesso!"); // ADICIONADO
+            toast.success("Operação realizada com sucesso!");
           }} />
         )}
       </div>
@@ -126,7 +126,10 @@ function ProdutosContent() {
                   <TableCell className="pl-8 py-4">
                     <div className="w-14 h-14 rounded-2xl bg-slate-100 overflow-hidden border border-slate-50 flex items-center justify-center">
                       {prod.imagem ? (
-                        <img src={`data:image/png;base64,${prod.imagem}`} className="w-full h-full object-cover" alt={prod.nome} />
+                        /* AJUSTE DE COMPRESSÃO: Alterado de image/png para image/webp 
+                           para suportar o novo formato comprimido e economizar banda.
+                        */
+                        <img src={`data:image/webp;base64,${prod.imagem}`} className="w-full h-full object-cover" alt={prod.nome} />
                       ) : (
                         <Package size={22} className="text-slate-300" />
                       )}
@@ -163,7 +166,7 @@ function ProdutosContent() {
                       {(cargo === "ADMIN" || cargo === "GERENTE") && (
                         <ProdutoModal produto={prod} onSuccess={() => {
                           carregarDados();
-                          toast.success("Produto editado!"); // ADICIONADO
+                          toast.success("Produto editado!");
                         }} />
                       )}
                       
@@ -173,10 +176,10 @@ function ProdutosContent() {
                             if (confirm(`Excluir "${prod.nome}" permanentemente?`)) {
                               const res = await deleteProduto(prod.id);
                               if (res.success) {
-                                toast.success("Produto removido com sucesso."); // ADICIONADO
+                                toast.success("Produto removido com sucesso.");
                                 carregarDados();
                               } else {
-                                toast.error("Não foi possível excluir o produto."); // ADICIONADO
+                                toast.error("Não foi possível excluir o produto.");
                               }
                             }
                           }}
