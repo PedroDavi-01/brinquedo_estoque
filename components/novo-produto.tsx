@@ -42,11 +42,11 @@ export function ProdutoModal({ produto, onSuccess }: ProdutoModalProps) {
     const toastId = toast.loading("Otimizando imagem...");
 
     const options = {
-      maxSizeMB: 2,
+      maxSizeMB: 5,
       maxWidthOrHeight: 1920,
       useWebWorker: true,
       fileType: 'image/webp',
-      initialQuality: 0.90
+      initialQuality: 0.95
     };
 
     try {
