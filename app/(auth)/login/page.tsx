@@ -68,7 +68,7 @@ export default function LoginPage() {
             </div>
           </div>
           <CardTitle className="text-xl font-black text-blue-600 tracking-tighter italic uppercase">
-            Recanto da Infância
+            Recanto Estoque
           </CardTitle>
           <CardDescription className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.15em]">
             Gestão de Estoque e Inventário
