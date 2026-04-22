@@ -28,7 +28,9 @@ export const movimentacoes = pgTable('movimentacoes', {
   tipo: text('tipo').notNull(),
   quantidade: integer('quantidade').notNull(),
   data: timestamp('data').defaultNow().notNull(),
-  produtoId: integer('produtoId').references(() => produtos.id).notNull(),
+  produtoId: integer('produtoId')
+    .references(() => produtos.id, { onDelete: 'cascade' })
+    .notNull(),
   usuarioId: integer('usuarioId').references(() => usuarios.id).notNull(),
 });
 

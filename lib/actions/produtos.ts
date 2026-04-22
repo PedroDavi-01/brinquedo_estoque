@@ -31,18 +31,19 @@ export async function createProduto(data: any) {
       imagem: data.imagem, 
     });
 
-    // Revalida ambas as rotas para o estoque atualizar no sistema todo
     revalidatePath("/dashboard/produtos");
     revalidatePath("/dashboard"); 
     
     return { success: true };
   } catch (error) {
+    console.error("Erro ao criar:", error);
     return { success: false };
   }
 }
 
 export async function updateProduto(id: number, data: any) {
   try {
+    const idNum = Number(id);
     await db.update(produtos).set({
       nome: data.nome,
       categoria: data.categoria,
@@ -51,26 +52,37 @@ export async function updateProduto(id: number, data: any) {
       qtdAtual: parseInt(data.qtdAtual),
       qtdMinima: parseInt(data.qtdMinima),
       imagem: data.imagem,
-    }).where(eq(produtos.id, id));
+    }).where(eq(produtos.id, idNum));
 
     revalidatePath("/dashboard/produtos");
     revalidatePath("/dashboard");
 
     return { success: true };
   } catch (error) {
+    console.error("Erro ao atualizar:", error);
     return { success: false };
   }
 }
 
 export async function deleteProduto(id: number) {
   try {
-    await db.delete(produtos).where(eq(produtos.id, id));
+    // Força a conversão para número para evitar falha no Drizzle/Postgres
+    const idNum = Number(id);
     
+    if (isNaN(idNum)) {
+      console.error("ID inválido recebido no delete");
+      return { success: false };
+    }
+
+    await db.delete(produtos).where(eq(produtos.id, idNum));
+    
+    // Revalidação agressiva do cache
     revalidatePath("/dashboard/produtos");
     revalidatePath("/dashboard");
 
     return { success: true };
   } catch (error) {
+    console.error("Erro ao deletar produto:", error);
     return { success: false };
   }
 }

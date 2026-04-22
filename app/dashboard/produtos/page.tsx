@@ -46,7 +46,7 @@ function ProdutosContent() {
       setListaProdutos(dados || []);
     } catch (error) {
       console.error("Erro ao carregar produtos:", error);
-      toast.error("Erro ao sincronizar produtos com o servidor.");
+      toast.error("Erro ao sincronizar produtos.");
     } finally {
       setCarregando(false);
     }
@@ -77,7 +77,7 @@ function ProdutosContent() {
         {cargo !== "FUNCIONARIO" && (
           <ProdutoModal onSuccess={() => {
             carregarDados();
-            toast.success("Operação realizada com sucesso!");
+            toast.success("Operação realizada!");
           }} />
         )}
       </div>
@@ -105,7 +105,7 @@ function ProdutosContent() {
             <TableRow className="hover:bg-transparent border-none">
               <TableHead className="font-black text-slate-400 uppercase text-[10px] pl-8 h-14">Foto</TableHead>
               <TableHead className="font-black text-slate-400 uppercase text-[10px]">Brinquedo</TableHead>
-              <TableHead className="font-black text-slate-400 uppercase text-[10px]">Categoria / Idade</TableHead>
+              <TableHead className="font-black text-slate-400 uppercase text-[10px]">Categoria</TableHead>
               <TableHead className="font-black text-slate-400 uppercase text-[10px]">Preço</TableHead>
               <TableHead className="font-black text-slate-400 uppercase text-[10px]">Estoque</TableHead>
               <TableHead className="font-black text-slate-400 uppercase text-[10px] text-right pr-8">Ações</TableHead>
@@ -115,33 +115,30 @@ function ProdutosContent() {
             {carregando ? (
               <TableRow>
                 <TableCell colSpan={6} className="h-40 text-center">
-                  <div className="flex items-center justify-center gap-2 text-slate-400 font-bold italic">
-                    <Loader2 className="animate-spin" size={18} />
-                    Sincronizando...
-                  </div>
+                  <Loader2 className="animate-spin inline mr-2" size={18} />
+                  Sincronizando...
                 </TableCell>
               </TableRow>
             ) : (
               listaProdutos.map((prod) => (
                 <TableRow key={prod.id} className="group hover:bg-slate-50/40 border-slate-50">
-<TableCell className="pl-8 py-4">
-  <div className="relative w-14 h-14 rounded-2xl bg-slate-100 overflow-hidden border border-slate-50 shrink-0">
-    {prod.imagem ? (
-      <Image 
-        src={`data:image/webp;base64,${prod.imagem}`} 
-        alt={prod.nome}
-        fill 
-        className="object-cover" 
-        sizes="56px" 
-        unoptimized 
-      />
-    ) : (
-      <div className="w-full h-full flex items-center justify-center">
-        <Package size={22} className="text-slate-300" />
-      </div>
-    )}
-  </div>
-</TableCell>
+                  <TableCell className="pl-8 py-4">
+                    <div className="relative w-14 h-14 rounded-2xl bg-slate-100 overflow-hidden border border-slate-50 shrink-0">
+                      {prod.imagem ? (
+                        <Image 
+                          src={`data:image/webp;base64,${prod.imagem}`} 
+                          alt={prod.nome}
+                          fill 
+                          className="object-cover" 
+                          unoptimized 
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <Package size={22} className="text-slate-300" />
+                        </div>
+                      )}
+                    </div>
+                  </TableCell>
 
                   <TableCell className="font-bold text-slate-900">{prod.nome}</TableCell>
                   
@@ -150,7 +147,6 @@ function ProdutosContent() {
                       <span className="px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-[10px] font-black uppercase">
                         {prod.categoria}
                       </span>
-                      <span className="text-slate-400 font-bold text-[11px]">/ {prod.faixaEtaria}</span>
                     </div>
                   </TableCell>
 
@@ -158,12 +154,9 @@ function ProdutosContent() {
 
                   <TableCell>
                     <div className="flex flex-col">
-                      <div className="flex items-center gap-1">
-                        <span className={`font-black ${Number(prod.qtdAtual) <= Number(prod.qtdMinima) ? 'text-red-500' : 'text-slate-900'}`}>
-                          {prod.qtdAtual} un.
-                        </span>
-                        {Number(prod.qtdAtual) <= Number(prod.qtdMinima) && <AlertCircle size={14} className="text-red-500 animate-pulse" />}
-                      </div>
+                      <span className={`font-black ${Number(prod.qtdAtual) <= Number(prod.qtdMinima) ? 'text-red-500' : 'text-slate-900'}`}>
+                        {prod.qtdAtual} un.
+                      </span>
                       <span className="text-[9px] font-bold text-slate-400 uppercase">Mín: {prod.qtdMinima}</span>
                     </div>
                   </TableCell>
@@ -171,22 +164,20 @@ function ProdutosContent() {
                   <TableCell className="text-right pr-8">
                     <div className="flex items-center justify-end gap-2">
                       {(cargo === "ADMIN" || cargo === "GERENTE") && (
-                        <ProdutoModal produto={prod} onSuccess={() => {
-                          carregarDados();
-                          toast.success("Produto editado!");
-                        }} />
+                        <ProdutoModal produto={prod} onSuccess={carregarDados} />
                       )}
                       
                       {cargo === "ADMIN" && (
                         <button
                           onClick={async () => {
+                            const idExcluir = prod.id;
                             if (confirm(`Excluir "${prod.nome}" permanentemente?`)) {
-                              const res = await deleteProduto(prod.id);
+                              const res = await deleteProduto(idExcluir);
                               if (res.success) {
-                                toast.success("Produto removido com sucesso.");
-                                carregarDados();
+                                toast.success("Produto removido!");
+                                await carregarDados();
                               } else {
-                                toast.error("Não foi possível excluir o produto.");
+                                toast.error("Erro ao excluir.");
                               }
                             }
                           }}
@@ -194,10 +185,6 @@ function ProdutosContent() {
                         >
                           Excluir
                         </button>
-                      )}
-
-                      {cargo === "FUNCIONARIO" && (
-                        <span className="text-[9px] font-black uppercase text-slate-300 italic">Somente Leitura</span>
                       )}
                     </div>
                   </TableCell>
